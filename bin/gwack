@@ -1,0 +1,37 @@
+#!/usr/bin/env node
+
+import { program } from 'commander'
+import { devCommand } from '../src/cli/dev.js'
+import { buildCommand } from '../src/cli/build.js'
+import { createCommand } from '../src/cli/create.js'
+import { version } from '../src/index.js'
+
+program
+  .name('Gwack')
+  .description('Gwack Framework CLI')
+  .version(version)
+
+// Dev command
+program
+  .command('dev')
+  .description('Start development server')
+  .option('-p, --port <port>', 'Frontend port', '3000')
+  .option('--php-port <port>', 'PHP server port', '8080')
+  .option('-h, --host <host>', 'Host to bind to', 'localhost')
+  .action(devCommand)
+
+// Build command
+program
+  .command('build')
+  .description('Build the application for production')
+  .option('-o, --output <dir>', 'Output directory', 'dist')
+  .action(buildCommand)
+
+// Create command
+program
+  .command('create <name>')
+  .description('Create a new Gwack project')
+  .option('-t, --template <template>', 'Project template', 'default')
+  .action(createCommand)
+
+program.parse(process.argv)
