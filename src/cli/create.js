@@ -47,12 +47,44 @@ export async function createCommand(name, options) {
       JSON.stringify(packageJson, null, 2)
     );
 
+    // Create composer.json
+    const composerName = name.includes('/')
+      ? name
+      : `app/${name.toLowerCase().replace(/[^a-z0-9_.-]+/g, '-')}`;
+    const composerJson = {
+      name: composerName,
+      description: 'Gwack',
+      type: 'project',
+      require: {
+        php: '>=8.3',
+        'gwack/core': '1.0'
+      },
+      'minimum-stability': 'dev',
+      'prefer-stable': true,
+      autoload: {
+        'psr-4': {
+          'App\\': '.'
+        }
+      },
+      config: {
+        'allow-plugins': {
+          'php-http/discovery': true
+        }
+      }
+    };
+
+    await writeFile(
+      join(projectPath, 'composer.json'),
+      JSON.stringify(composerJson, null, 2)
+    );
+
     // Create basic files
     await createBasicFiles(projectPath);
 
     console.log(chalk.green('✅ Project created successfully!'));
     console.log(chalk.gray('\n📦 Next steps:'));
     console.log(chalk.gray(`   cd ${name}`));
+    console.log(chalk.gray('   composer install'));
     console.log(chalk.gray('   npm install'));
     console.log(chalk.gray('   npm run dev'));
 
