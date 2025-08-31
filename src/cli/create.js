@@ -24,11 +24,6 @@ export async function createCommand(name, options) {
     // Create project structure
     await mkdir(projectPath, { recursive: true });
     await mkdir(join(projectPath, 'pages'), { recursive: true });
-    await mkdir(join(projectPath, 'server'), { recursive: true });
-    await mkdir(join(projectPath, 'server/api'), { recursive: true });
-    await mkdir(join(projectPath, 'layouts'), { recursive: true });
-    await mkdir(join(projectPath, 'components'), { recursive: true });
-    await mkdir(join(projectPath, 'composables'), { recursive: true });
 
     // Create package.json
     const packageJson = {
@@ -42,7 +37,8 @@ export async function createCommand(name, options) {
         preview: 'gwack preview'
       },
       dependencies: {
-        '@gwack/framework': 'latest'
+        "vue": "^3.4.0",
+        "vue-router": "^4.2.0"
       }
     };
 
