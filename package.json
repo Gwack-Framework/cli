@@ -1,6 +1,7 @@
 {
   "name": "@gwack/cli",
   "version": "0.1.2",
+  "private": false,
   "description": "PHP Framework with vue intergration",
   "type": "module",
   "main": "src/index.js",
