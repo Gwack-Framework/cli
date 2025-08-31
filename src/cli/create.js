@@ -68,7 +68,7 @@ async function createBasicFiles(projectPath) {
   const indexPage = `<template>
   <div class="home">
     <h1>Welcome to Gwack Framework!</h1>
-    <p>Your high-performance PHP framework with Vue.js frontend</p>
+    <p>Your fav PHP framework with Vue.js frontend</p>
   </div>
 </template>
 <style scoped>
