@@ -63,7 +63,7 @@ Builds the application for production with optimization and asset minification.
 
 For issues, bugs, or feature requests:
 
-- Check out the [main Gwack Framework repository](https://github.com/Gwack-Framework/gwack)
+- Check out the [main Gwack Framework repository](https://github.com/Gwack-Framework/core)
 - Open an issue on GitHub
 
 ## License
