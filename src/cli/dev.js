@@ -14,6 +14,7 @@ import chokidar from 'chokidar';
 import chalk from 'chalk';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import { writeFile } from 'fs/promises';
 import { createViteConfig } from '../config/vite.js';
 import { startPhpServer } from '../servers/php.js';
 
@@ -37,6 +38,9 @@ export async function devCommand(options) {
             console.error(chalk.red('No server/ directory found. Are you in a Gwack project?'));
             process.exit(1);
         }
+
+        // Ensure an index.html exists so Vite can serve the app
+        await ensureIndexHtml(cwd);
 
         // Start WebSocket server for HMR communication
         const wss = new WebSocketServer({ port: 8081 });
@@ -124,4 +128,30 @@ function setupFileWatchers(cwd, wss) {
     });
 
     console.log(chalk.green('✓ File watchers started'));
+}
+
+/**
+ * Ensure a minimal index.html exists at project root for Vite SPA
+ *
+ * @param {string} cwd
+ */
+async function ensureIndexHtml(cwd) {
+    const indexPath = join(cwd, 'index.html');
+    if (existsSync(indexPath)) return;
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Gwack App</title>
+    </head>
+    <body>
+        <div id="app"></div>
+        <script type="module" src="/.gwack/entry.js"></script>
+    </body>
+</html>
+`;
+    await writeFile(indexPath, html);
+    console.log(chalk.gray('   Created default index.html'));
 }
