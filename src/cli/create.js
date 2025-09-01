@@ -5,6 +5,7 @@
  */
 
 import { mkdir, writeFile, copyFile } from 'fs/promises';
+import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import chalk from 'chalk';
 
@@ -96,60 +97,49 @@ export async function createCommand(name, options) {
 }
 
 async function createBasicFiles(projectPath) {
-  // Create pages/index.vue
-  const indexPage = `<template>
-  <div class="home">
-    <h1>Welcome to Gwack Framework!</h1>
-    <p>Your fav PHP framework with Vue.js frontend</p>
-  </div>
-</template>
-<style scoped>
-.home {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.post {
-  border: 1px solid #eee;
-  padding: 1rem;
-  margin: 1rem 0;
-  border-radius: 4px;
-}
-</style>`;
+  // Create pages/index.vue from shim
+  let indexPage;
+  try {
+    const shimPath = join(import.meta.dirname, '../shims/index-page.vue');
+    if (existsSync(shimPath)) {
+      indexPage = readFileSync(shimPath, 'utf8');
+    } else {
+      throw new Error('Shim not found');
+    }
+  } catch (error) {
+    console.error('Could not read index page shim');
+  }
 
   await writeFile(join(projectPath, 'pages/index.vue'), indexPage);
 
-  // Create gwack.config.js
-  const config = `export default {
-    // Framework configuration
-    php: {
-      port: 8000
-    },
-    frontend: {
-      port: 3000
-    },
-
-    // Build configuration
-    build: {
-      target: 'es2020'
+  // gwack.config.js
+  let config;
+  try {
+    const shimPath = join(import.meta.dirname, '../shims/gwack.config.js');
+    if (existsSync(shimPath)) {
+      config = readFileSync(shimPath, 'utf8');
+    } else {
+      throw new Error('Shim not found');
     }
-  }`;
+  } catch (error) {
+    console.error('Could not read config shim');
+  }
 
   await writeFile(join(projectPath, 'gwack.config.js'), config);
 
-  // Create index.html so Vite has an entry
-  const html = `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gwack App</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/.gwack/entry.js"></script>
-  </body>
-</html>`;
+  // index.html
+  let html;
+  try {
+    const shimPath = join(import.meta.dirname, '../shims/index.html');
+    if (existsSync(shimPath)) {
+      html = readFileSync(shimPath, 'utf8');
+    } else {
+      throw new Error('Shim not found');
+    }
+  } catch (error) {
+    console.error('Could not read HTML shim');
+    return
+  }
+
   await writeFile(join(projectPath, 'index.html'), html);
 }

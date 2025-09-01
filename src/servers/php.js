@@ -7,6 +7,7 @@
 import { spawn } from 'child_process';
 import { join } from 'path';
 import { writeFile, mkdir } from 'fs/promises';
+import { existsSync, readFileSync } from 'fs';
 import chalk from 'chalk';
 
 /**
@@ -108,50 +109,19 @@ function isPhpRequestLog(line) {
 async function createPhpEntryPoint(cwd) {
     // Ensure .gwack directory exists
     await mkdir(join(cwd, '.gwack'), { recursive: true });
-    const entryPoint = `<?php
-        /**
-         * Gwack Framework Entry Point
-         *
-         * This file bootstraps the framework and handles all incoming requests
-         * It's automatically generated - do not edit manually
-         */
 
-        require_once '../vendor/autoload.php';
-
-        use Gwack\\Core\\Application;
-        use Gwack\\Core\\Routing\\FileBasedRouter;
-
-        // Create the application
-        $app = new Application(__DIR__ . '/..');
-
-        // Configure for development
-        $app->configure([
-            'env' => 'development',
-            'debug' => true,
-            'api' => [
-                'prefix' => '/api'
-            ]
-        ]);
-
-        // Boot the framework
-        $app->boot();
-
-        // Set up file-based routing if server/ exists
-        $serverDir = __DIR__ . '/../server';
-        if (is_dir($serverDir)) {
-            $fileRouter = new FileBasedRouter($app->getContainer());
-            $fileRouter->discoverRoutes($serverDir);
+    let entryPoint;
+    try {
+        const shimPath = join(import.meta.dirname, '../shims/index.php');
+        if (existsSync(shimPath)) {
+            entryPoint = readFileSync(shimPath, 'utf8');
+        } else {
+            throw new Error('Shim not found');
         }
-
-        // Optionally include compiled routes cache if present
-        if (file_exists(__DIR__ . '/routes.php')) {
-            // This returns an array mapping paths to closures, but our runtime router
-            // builds from discovery; keeping here for future optimization.
-        }
-
-        // Handle the incoming request
-        $app->run();
-    `;
+    } catch (error) {
+        console.error('Could not read PHP entry point shim');
+        entryPoint = '';
+    }
 
     await writeFile(join(cwd, '.gwack/index.php'), entryPoint);
 }

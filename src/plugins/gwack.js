@@ -10,7 +10,7 @@
 
 import { readdir, stat } from 'fs/promises';
 import { join, relative, extname, basename } from 'path';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
 
 /**
  * Gwack Framework Vite plugin
@@ -176,10 +176,21 @@ function generateRoutePath(prefix, filename) {
 
 /**
  * Generate main App component
+ * Reads the template from shims/app-component.js
  *
  * @returns {string} Vue component code
  */
 function generateAppComponent() {
+  try {
+    const shimPath = join(process.cwd(), 'node_modules/@gwack/cli/src/shims/app-component.js');
+    if (existsSync(shimPath)) {
+      return readFileSync(shimPath, 'utf8').replace(/^export default /, '').replace(/export default/, '');
+    }
+  } catch (error) {
+    console.warn('Could not read app component shim, using fallback');
+  }
+
+  // Fallback to embedded template
   return `
 export default {
   name: 'GwackApp',
@@ -202,88 +213,21 @@ export default {
 
 /**
  * Generate the main entry point for the application
+ * Reads the template from shims/entry-point.js
  *
  * @param {number} phpPort - PHP server port
  * @returns {string} Entry point code
  */
 function generateEntryPoint(phpPort) {
-  return `
-    import { createApp } from 'vue'
-    import { createRouter, createWebHistory } from 'vue-router'
-    import routes from 'virtual:gwack-routes'
-    import App from 'virtual:gwack-app'
-
-    // Create router with generated routes
-    const router = createRouter({
-      history: createWebHistory(),
-      routes: routes.map(route => ({
-        ...route,
-        component: () => import(/* @vite-ignore */ route.component)
-      }))
-    })
-
-    // Create Vue app
-    const app = createApp(App)
-
-    // Global properties
-    app.config.globalProperties.$fetch = async (endpoint, options = {}) => {
-      const response = await fetch(\`/api/\${endpoint}\`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers
-        },
-        ...options
-      })
-
-      if (!response.ok) {
-        throw new Error(\`HTTP error! status: \${response.status}\`)
-      }
-
-      return response.json()
+  try {
+    const shimPath = join(process.cwd(), 'node_modules/@gwack/cli/src/shims/entry-point.js');
+    if (existsSync(shimPath)) {
+      return readFileSync(shimPath, 'utf8');
     }
-
-    // Use router and mount app
-    app.use(router)
-    app.mount('#app')
-
-    // HMR setup
-    if (import.meta.hot) {
-      // Only handle PHP backend changes with WebSocket
-      const ws = new WebSocket('ws://localhost:8081')
-
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data)
-
-        if (data.type === 'php-reload') {
-          console.log('🔄 PHP backend changed, reloading...')
-          window.location.reload()
-        }
-      }
-
-      ws.onopen = () => {
-        console.log('🔗 Connected to gwack backend HMR')
-      }
-
-      // Handle route changes (new/deleted pages only)
-      import.meta.hot.accept('virtual:gwack-routes', (newRoutes) => {
-        if (newRoutes) {
-          console.log('🔄 Routes updated')
-          // Update router with new routes
-          router.getRoutes().forEach(route => {
-            router.removeRoute(route.name)
-          })
-          newRoutes.default.forEach(route => {
-            router.addRoute({
-              ...route,
-              component: () => import(/* @vite-ignore */ route.component)
-            })
-          })
-        }
-      })
-
-      // Let Vite handle Vue file HMR naturally - don't interfere
-    }
-  `;
+  } catch (error) {
+    console.error('Could not read entry point shim');
+    return '';
+  }
 }
 
 
