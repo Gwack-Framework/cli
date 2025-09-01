@@ -33,12 +33,6 @@ export async function devCommand(options) {
     console.log(chalk.blue.bold('Starting Gwack Framework Development Server\n'));
 
     try {
-        // Validate project structure
-        if (!existsSync(join(cwd, 'server'))) {
-            console.error(chalk.red('No server/ directory found. Are you in a Gwack project?'));
-            process.exit(1);
-        }
-
         // Ensure an index.html exists so Vite can serve the app
         await ensureIndexHtml(cwd);
 

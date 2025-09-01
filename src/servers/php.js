@@ -136,9 +136,12 @@ async function createPhpEntryPoint(cwd) {
         // Boot the framework
         $app->boot();
 
-        // Set up file-based routing
-        $fileRouter = new FileBasedRouter($app->getContainer());
-        $fileRouter->discoverRoutes(__DIR__ . '/../server');
+        // Set up file-based routing if server/ exists
+        $serverDir = __DIR__ . '/../server';
+        if (is_dir($serverDir)) {
+            $fileRouter = new FileBasedRouter($app->getContainer());
+            $fileRouter->discoverRoutes($serverDir);
+        }
 
         // Optionally include compiled routes cache if present
         if (file_exists(__DIR__ . '/routes.php')) {
