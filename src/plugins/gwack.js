@@ -9,8 +9,9 @@
  */
 
 import { readdir, stat } from 'fs/promises';
-import { join, relative, extname, basename } from 'path';
+import { join, relative, extname, basename, dirname } from 'path';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 
 /**
  * Gwack Framework Vite plugin
@@ -42,7 +43,7 @@ export function gwackPlugin(options = {}) {
       }
 
       // Generate entry point file
-      const entryContent = generateEntryPoint();
+      const entryContent = generateEntryPoint(phpPort);
       const entryPath = join(gwackDir, 'entry.js');
       writeFileSync(entryPath, entryContent);
 
@@ -66,7 +67,14 @@ export function gwackPlugin(options = {}) {
       // Generate routes from pages directory
       if (id === 'virtual:gwack-routes') {
         const routes = await generateRoutes(pagesDir);
-        return `export default ${JSON.stringify(routes, null, 2)};`;
+        // Emit actual dynamic imports so Vite can bundle code-split chunks
+        const lines = [];
+        lines.push('export default [');
+        for (const r of routes) {
+          lines.push(`  { path: ${JSON.stringify(r.path)}, name: ${JSON.stringify(r.name)}, component: () => import(${JSON.stringify(r.importPath)}) },`);
+        }
+        lines.push('];');
+        return lines.join('\n');
       }
 
       // Generate main app component
@@ -92,7 +100,7 @@ export function gwackPlugin(options = {}) {
         if (ctx.type === 'create' || ctx.type === 'delete') {
           // Regenerate entry file with new routes
           const gwackDir = join(process.cwd(), '.gwack');
-          const entryContent = generateEntryPoint();
+          const entryContent = generateEntryPoint(phpPort);
           const entryPath = join(gwackDir, 'entry.js');
           writeFileSync(entryPath, entryContent);
 
@@ -134,11 +142,12 @@ async function generateRoutes(pagesDir) {
       } else if (entry.endsWith('.vue')) {
         const routePath = generateRoutePath(prefix, entry);
         const componentPath = relative(pagesDir, fullPath);
+        const normalized = componentPath.split('\\').join('/');
 
         routes.push({
           path: routePath,
           name: routePath.replace(/\//g, '.').replace(/^\./, '') || 'index',
-          component: `../pages/${componentPath}`
+          importPath: `pages/${normalized}`
         });
       }
     }
@@ -182,33 +191,21 @@ function generateRoutePath(prefix, filename) {
  */
 function generateAppComponent() {
   try {
-    const shimPath = join(process.cwd(), 'node_modules/@gwack/cli/src/shims/app-component.js');
-    if (existsSync(shimPath)) {
-      return readFileSync(shimPath, 'utf8').replace(/^export default /, '').replace(/export default/, '');
+    const nmShim = join(process.cwd(), 'node_modules/@gwack/cli/src/shims/app-component.js');
+    if (existsSync(nmShim)) {
+      return readFileSync(nmShim, 'utf8');
+    }
+
+    const here = dirname(fileURLToPath(import.meta.url));
+    const localShim = join(here, '..', 'shims', 'app-component.js');
+    if (existsSync(localShim)) {
+      return readFileSync(localShim, 'utf8');
     }
   } catch (error) {
     console.warn('Could not read app component shim, using fallback');
+
+    return ''
   }
-
-  // Fallback to embedded template
-  return `
-export default {
-  name: 'GwackApp',
-  template: \`
-    <router-view />
-  \`,
-  style: \`
-    #app {
-      min-height: 100vh;
-    }
-
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-  \`
-}
-`;
 }
 
 /**
@@ -220,9 +217,15 @@ export default {
  */
 function generateEntryPoint(phpPort) {
   try {
-    const shimPath = join(process.cwd(), 'node_modules/@gwack/cli/src/shims/entry-point.js');
-    if (existsSync(shimPath)) {
-      return readFileSync(shimPath, 'utf8');
+    const nmShim = join(process.cwd(), 'node_modules/@gwack/cli/src/shims/entry-point.js');
+    if (existsSync(nmShim)) {
+      return readFileSync(nmShim, 'utf8');
+    }
+
+    const here = dirname(fileURLToPath(import.meta.url));
+    const localShim = join(here, '..', 'shims', 'entry-point.js');
+    if (existsSync(localShim)) {
+      return readFileSync(localShim, 'utf8');
     }
   } catch (error) {
     console.error('Could not read entry point shim');

@@ -24,7 +24,7 @@ program
 program
   .command('build')
   .description('Build the application for production')
-  .option('-o, --output <dir>', 'Output directory', 'dist')
+  .option('-o, --output <dir>', 'Output directory', '.output')
   .action(buildCommand)
 
 // Create command

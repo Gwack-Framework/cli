@@ -6,10 +6,7 @@ import App from 'virtual:gwack-app'
 // Create router with generated routes
 const router = createRouter({
     history: createWebHistory(),
-    routes: routes.map(route => ({
-        ...route,
-        component: () => import(/* @vite-ignore */ route.component)
-    }))
+    routes
 })
 
 // Create Vue app

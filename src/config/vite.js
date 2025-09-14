@@ -15,8 +15,30 @@ export function createViteConfig(options = {}) {
         phpPort = 8000,
         host = 'localhost',
         port = 3000,
-        mode = 'development'
+        mode = 'development',
+        build: buildOverride
     } = options;
+
+    // Defaults
+    const defaultBuild = {
+        outDir: 'dist',
+        emptyOutDir: true,
+        target: 'es2020',
+        rollupOptions: {
+            input: {
+                main: resolve(root, 'index.html')
+            }
+        }
+    };
+
+    const mergedBuild = {
+        ...defaultBuild,
+        ...(buildOverride || {}),
+        rollupOptions: {
+            ...(defaultBuild.rollupOptions || {}),
+            ...((buildOverride && buildOverride.rollupOptions) || {})
+        }
+    };
 
     return defineConfig({
         root,
@@ -57,18 +79,8 @@ export function createViteConfig(options = {}) {
             cors: true
         },
 
-        // Build configuration
-        build: {
-            outDir: 'dist',
-            emptyOutDir: true,
-            target: 'es2020',
-
-            rollupOptions: {
-                input: {
-                    main: resolve(root, 'index.html')
-                }
-            }
-        },
+        // Build configuration (merged defaults + overrides)
+        build: mergedBuild,
 
         // Path resolution
         resolve: {
