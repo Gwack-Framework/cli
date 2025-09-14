@@ -12,15 +12,15 @@ Gwack CLI is the companion tool for the Gwack Framework - a PHP framework with V
 # Install globally
 npm install -g @gwack/cli
 
-# Or use with npx (no installation required)
-npx gwack create my-awesome-app
+# Or use with npx
+npx @gwack/cli create my-awesome-app
 
 # Create a new project
 gwack create my-awesome-app
 # or
 npx gwack create my-awesome-app
 
-# Start developing
+# Start development server
 cd my-awesome-app
 gwack dev
 # or
@@ -51,11 +51,11 @@ Builds the application for production with optimization and asset minification.
 
 **Options:**
 
-- `-o, --output <dir>` - Where to put the built files (default: dist)
+- `-o, --output <dir>` - Where to put the built files (default: .output)
 
 ## Requirements
 
-- Node.js 18+
+- Node.js 20+
 - PHP 8.3+
 - Composer
 
