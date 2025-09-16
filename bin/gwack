@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
 import { program } from 'commander'
-import { devCommand } from '../src/cli/dev.js'
-import { buildCommand } from '../src/cli/build.js'
-import { createCommand } from '../src/cli/create.js'
-import { version } from '../src/index.js'
+import { devCommand } from '../dist/cli/dev.js'
+import { buildCommand } from '../dist/cli/build.js'
+import { createCommand } from '../dist/cli/create.js'
+import { VERSION } from '../dist/index.js'
 
 program
   .name('Gwack')
   .description('Gwack Framework CLI')
-  .version(version)
+  .version(VERSION, "-v, --version", "Print the current version")
 
 // Dev command
 program
