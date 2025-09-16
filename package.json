@@ -9,8 +9,7 @@
     "gwack": "bin/gwack"
   },
   "scripts": {
-    "test": "vitest",
-    "build": "rollup -c"
+    "build": "tsc"
   },
   "keywords": [
     "php",
@@ -22,20 +21,27 @@
   "author": "Gwack Framework Team",
   "license": "MIT",
   "dependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "chalk": "5.6.0",
+    "chokidar": "4.0.3",
+    "commander": "14.0.0",
+    "concurrently": "9.2.1",
+    "glob": "11.0.3",
     "vite": "6.3.5",
     "vue": "3.5.20",
     "vue-router": "^4.2.0",
-    "@vitejs/plugin-vue": "^5.0.0",
-    "chokidar": "4.0.3",
-    "ws": "8.18.3",
-    "concurrently": "9.2.1",
-    "chalk": "5.6.0",
-    "commander": "14.0.0",
-    "glob": "11.0.3"
+    "ws": "8.18.3"
   },
   "devDependencies": {
-    "vitest": "3.2.4",
-    "rollup": "^4.9.0"
+    "@types/chalk": "^0.4.31",
+    "@types/chokidar": "^1.7.5",
+    "@types/commander": "^2.12.0",
+    "@types/concurrently": "^6.4.0",
+    "@types/node": "^24.5.0",
+    "@types/vue": "^1.0.31",
+    "@types/vue-router": "^2.0.0",
+    "@types/ws": "^8.18.1",
+    "typescript": "^5.9.2"
   },
   "files": [
     "bin",
