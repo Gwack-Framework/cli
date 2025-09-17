@@ -9,7 +9,7 @@
  */
 
 import { readdir, stat } from 'fs/promises';
-import { join, relative, extname, basename, dirname } from 'path';
+import { join, relative, basename, dirname } from 'path';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 
@@ -23,7 +23,8 @@ export function gwackPlugin(options = {}) {
   const {
     pagesDir,
     serverDir,
-    phpPort = 8000
+    phpPort = 8000,
+    runtimeGwack = {}
   } = options;
 
   let config;
@@ -61,6 +62,9 @@ export function gwackPlugin(options = {}) {
       if (id === 'virtual:gwack-app') {
         return id;
       }
+      if (id === 'virtual:gwack-config' || id === 'gwack/config') {
+        return 'virtual:gwack-config';
+      }
     },
 
     async load(id) {
@@ -85,6 +89,11 @@ export function gwackPlugin(options = {}) {
       // Generate entry point
       if (id === 'virtual:gwack-entry') {
         return generateEntryPoint(phpPort);
+      }
+
+      if (id === 'virtual:gwack-config') {
+        // Expose runtime config to the app via a composable function
+        return `export function useRuntimeConfig() { return ${JSON.stringify(runtimeGwack)}; }`;
       }
     },        // Handle HMR updates
     handleHotUpdate(ctx) {

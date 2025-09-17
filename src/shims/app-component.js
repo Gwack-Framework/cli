@@ -4,11 +4,11 @@
  */
 
 export default {
-    name: 'GwackApp',
-    template: `
+  name: 'GwackApp',
+  template: `
     <router-view />
   `,
-    style: `
+  style: `
     #app {
       min-height: 100vh;
     }

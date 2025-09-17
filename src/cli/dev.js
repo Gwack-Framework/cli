@@ -13,10 +13,36 @@ import { WebSocketServer } from 'ws';
 import chokidar from 'chokidar';
 import chalk from 'chalk';
 import { join } from 'path';
-import { existsSync, readFileSync } from 'fs';
-import { writeFile } from 'fs/promises';
+import { existsSync } from 'fs';
 import { createViteConfig } from '../config/vite.js';
 import { startPhpServer } from '../servers/php.js';
+
+/**
+ * Load configuration from gwack.config.js/ts
+ * @param {string} cwd - Current working directory
+ * @returns {Object} Configuration object
+ */
+async function loadConfig(cwd) {
+    const configPaths = [
+        join(cwd, 'gwack.config.js'),
+        join(cwd, 'gwack.config.ts'),
+        join(cwd, 'gwack.config.mjs')
+    ];
+
+    for (const configPath of configPaths) {
+        if (existsSync(configPath)) {
+            try {
+                const config = await import(`file://${configPath}`);
+                return config.default || config;
+            } catch (error) {
+                console.warn(chalk.yellow(`Warning: Failed to load config from ${configPath}`));
+                console.warn(error.message);
+            }
+        }
+    }
+
+    return {};
+}
 
 /**
  * Development command handler
@@ -37,29 +63,40 @@ export async function devCommand(options) {
         const wss = new WebSocketServer({ port: 8081 });
         console.log(chalk.green('✓ WebSocket server started on port 8081'));
 
+        // Load configurations
+        const gwackConfig = await loadConfig(cwd);
+        const serveCfg = gwackConfig.serve || {};
+        const phpCfg = serveCfg.php || {};
+        const feCfg = serveCfg.frontend || {};
+
         // Start PHP server
-        const phpProcess = await startPhpServer(phpPort, cwd);
-        console.log(chalk.green(`✓ PHP server started on port ${phpPort}`));
+        const resolvedPhpPort = phpCfg.port || parseInt(phpPort) || 8080;
+        const phpProcess = await startPhpServer(resolvedPhpPort, cwd);
+        console.log(chalk.green(`✓ PHP server started on port ${resolvedPhpPort}`));
 
         // Create Vite dev server
+        const resolvedHost = feCfg.host || host || 'localhost';
+        const resolvedPort = feCfg.port || parseInt(port) || 3000;
         const viteConfig = createViteConfig({
             root: cwd,
-            phpPort,
-            host,
-            port: parseInt(port)
+            phpPort: resolvedPhpPort,
+            host: resolvedHost,
+            port: resolvedPort,
+            vite: gwackConfig.vite || {},
+            runtimeGwack: gwackConfig.gwack || {}
         });
 
         const viteServer = await createServer(viteConfig);
-        await viteServer.listen(port, host);
+        await viteServer.listen(resolvedPort, resolvedHost);
 
-        console.log(chalk.green(`✓ Vite dev server started on http://${host}:${port}`));
+        console.log(chalk.green(`✓ Vite dev server started on http://${resolvedHost}:${resolvedPort}`));
 
         // Set up file watchers
         setupFileWatchers(cwd, wss);
 
         console.log(chalk.blue('\n🎉 Development server ready!'));
-        console.log(chalk.gray(`   Frontend: http://${host}:${port}`));
-        console.log(chalk.gray(`   Backend:  http://${host}:${phpPort}`));
+        console.log(chalk.gray(`   Frontend: http://${resolvedHost}:${resolvedPort}`));
+        console.log(chalk.gray(`   Backend:  http://${resolvedHost}:${resolvedPhpPort}`));
         console.log(chalk.gray(`   Press Ctrl+C to stop\n`));
 
         // Handle cleanup on exit

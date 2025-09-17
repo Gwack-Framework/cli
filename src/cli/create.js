@@ -38,8 +38,7 @@ export async function createCommand(name, options) {
         preview: 'gwack preview'
       },
       dependencies: {
-        "vue": "^3.4.0",
-        "vue-router": "^4.2.0"
+        "@gwack/js": "^0.1.0"
       }
     };
 
