@@ -1,11 +1,20 @@
 export default {
-    php: {
-        port: 8000
+    gwack: {
+        modules: []
     },
-    frontend: {
-        port: 3000
+    vite: {
+        autoImports: {
+            dts: '.gwack/auto-imports.d.ts'
+        }
     },
-    build: {
-        target: 'es2020'
+
+    serve: {
+        php: {
+            port: 8080
+        },
+        frontend: {
+            host: 'localhost',
+            port: 3000
+        }
     }
 }

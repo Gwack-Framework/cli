@@ -1,3 +1,5 @@
+// TODO: this one should be moved to the separate frontend library
+
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import routes from 'virtual:gwack-routes'
@@ -12,8 +14,8 @@ const router = createRouter({
 // Create Vue app
 const app = createApp(App)
 
-// Global properties
 app.config.globalProperties.$fetch = async (endpoint, options = {}) => {
+    // currently this is wrong
     const response = await fetch(`/api/${endpoint}`, {
         headers: {
             'Content-Type': 'application/json',

@@ -11,6 +11,8 @@ import { fileURLToPath } from 'url';
 import { existsSync } from 'fs';
 import { rm, mkdir, cp, writeFile, stat } from 'fs/promises';
 import { createViteConfig } from '../config/vite.js';
+import { join as pjoin } from 'path';
+import { readFile } from 'fs/promises';
 
 /**
  * Build command handler
@@ -29,7 +31,21 @@ export async function buildCommand(options) {
     console.log(chalk.blue.bold('Building for production...\n'));
 
     try {
-        // Target output structure similar to Nuxt's .output
+        // load config to get vite overrides and runtime gwack
+        let gwackConfig = {};
+        const configPathJs = join(cwd, 'gwack.config.js');
+        const configPathTs = join(cwd, 'gwack.config.ts');
+        const configPathMjs = join(cwd, 'gwack.config.mjs');
+        for (const c of [configPathJs, configPathTs, configPathMjs]) {
+            if (existsSync(c)) {
+                try {
+                    const mod = await import(`file://${c}`);
+                    gwackConfig = mod.default || mod;
+                    break;
+                } catch { }
+            }
+        }
+        // Target output structure similar
         const baseOutDir = resolve(cwd, output || '.output');
         const clientOutDir = join(baseOutDir, 'public');
         const serverOutDir = join(baseOutDir, 'server');
@@ -42,6 +58,9 @@ export async function buildCommand(options) {
         const viteConfig = createViteConfig({
             root: cwd,
             mode: 'production',
+            vite: {
+                ...(gwackConfig.vite || {}),
+            },
             build: {
                 outDir: clientOutDir,
                 emptyOutDir: true,
@@ -52,7 +71,8 @@ export async function buildCommand(options) {
                         }
                     }
                 }
-            }
+            },
+            runtimeGwack: gwackConfig.gwack || {}
         });
 
         await build(viteConfig);
