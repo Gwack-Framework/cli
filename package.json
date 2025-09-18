@@ -1,7 +1,9 @@
 {
   "name": "@gwack/cli",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "private": false,
+  "homepage": "https://github.com/Gwack-Framework/cli",
+  "readme": "README.md",
   "description": "PHP Framework with vue intergration",
   "type": "module",
   "main": "src/index.js",
