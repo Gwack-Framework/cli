@@ -5,4 +5,4 @@ export { createViteConfig } from './config/vite.js'
 export { gwackPlugin } from './plugins/gwack.js'
 export { startPhpServer } from './servers/php.js'
 
-export const VERSION = '0.2.0'
+export const VERSION = '0.2.2'
