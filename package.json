@@ -1,6 +1,6 @@
 {
   "name": "@gwack/cli",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": false,
   "homepage": "https://github.com/Gwack-Framework/cli",
   "readme": "README.md",
@@ -51,7 +51,8 @@
     "src",
     "templates",
     "dist",
-    "shims"
+    "shims",
+    "README.md"
   ],
   "engines": {
     "node": ">=18.0.0"
