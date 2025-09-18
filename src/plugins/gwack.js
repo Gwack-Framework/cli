@@ -200,20 +200,22 @@ function generateRoutePath(prefix, filename) {
  */
 function generateAppComponent() {
   try {
-    const nmShim = join(process.cwd(), 'node_modules/@gwack/cli/src/shims/app-component.js');
+    // Prefer package root shims
+    const nmShim = join(process.cwd(), 'node_modules/@gwack/cli/shims/app-component.tmpl');
     if (existsSync(nmShim)) {
       return readFileSync(nmShim, 'utf8');
     }
 
     const here = dirname(fileURLToPath(import.meta.url));
-    const localShim = join(here, '..', 'shims', 'app-component.js');
+    // Go up two levels from src/plugins or dist/plugins to reach cli root
+    const localShim = join(here, '..', '..', 'shims', 'app-component.tmpl');
     if (existsSync(localShim)) {
       return readFileSync(localShim, 'utf8');
     }
-  } catch (error) {
-    console.warn('Could not read app component shim, using fallback');
 
-    return ''
+    throw new Error(`App component shim not found. Checked: ${nmShim}, ${localShim}`);
+  } catch (error) {
+    throw new Error(`Failed to generate app component: ${error.message}`);
   }
 }
 
@@ -226,19 +228,23 @@ function generateAppComponent() {
  */
 function generateEntryPoint(phpPort) {
   try {
-    const nmShim = join(process.cwd(), 'node_modules/@gwack/cli/src/shims/entry-point.js');
+    // Prefer package root shims
+    const nmShim = join(process.cwd(), 'node_modules/@gwack/cli/shims/entry-point.tmpl');
     if (existsSync(nmShim)) {
       return readFileSync(nmShim, 'utf8');
     }
 
     const here = dirname(fileURLToPath(import.meta.url));
-    const localShim = join(here, '..', 'shims', 'entry-point.js');
+    // Go up two levels from src/plugins or dist/plugins to reach cli root
+    const localShim = join(here, '..', '..', 'shims', 'entry-point.tmpl');
     if (existsSync(localShim)) {
       return readFileSync(localShim, 'utf8');
     }
+
+    // If no shim found, throw error instead of returning undefined
+    throw new Error(`Entry point shim not found. Checked: ${nmShim}, ${localShim}`);
   } catch (error) {
-    console.error('Could not read entry point shim');
-    return '';
+    throw new Error(`Failed to generate entry point: ${error.message}`);
   }
 }
 

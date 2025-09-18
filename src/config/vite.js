@@ -12,9 +12,8 @@ function getDefaultAutoImports() {
     return {
         imports: [
             'vue',
-            'vue-router',
             {
-                '@gwack/frontend': [
+                '@gwack/js': [
                     'usePage',
                     'useFetch',
                     'useAsyncData',

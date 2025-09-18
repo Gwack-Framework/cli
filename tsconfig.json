@@ -42,5 +42,6 @@
     "skipLibCheck": true,
     "allowJs": true,
     "inlineSourceMap": false
-  }
+  },
+  "exclude": ["shims", "dist", "node_modules"]
 }
