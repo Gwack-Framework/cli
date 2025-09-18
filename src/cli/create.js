@@ -58,7 +58,7 @@ export async function createCommand(name, options) {
       type: 'project',
       require: {
         php: '>=8.3',
-        'gwack/core': '1.0'
+        'gwack/core': '0.1.1'
       },
       'minimum-stability': 'dev',
       'prefer-stable': true,
