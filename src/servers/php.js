@@ -5,7 +5,8 @@
  */
 
 import { spawn } from 'child_process';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { writeFile, mkdir } from 'fs/promises';
 import { existsSync, readFileSync } from 'fs';
 import chalk from 'chalk';
@@ -112,15 +113,18 @@ async function createPhpEntryPoint(cwd) {
 
     let entryPoint;
     try {
-        const shimPath = join(import.meta.dirname, '../shims/index.php');
+        // Resolve root-level shims directory regardless of running from src or dist
+        const here = dirname(fileURLToPath(import.meta.url));
+        // Go up two levels from src/servers to reach cli root, or from dist/servers to reach cli root
+        const root = join(here, '..', '..');
+        const shimPath = join(root, 'shims', 'index.php.tmpl');
         if (existsSync(shimPath)) {
             entryPoint = readFileSync(shimPath, 'utf8');
         } else {
-            throw new Error('Shim not found');
+            throw new Error(`Shim not found at ${shimPath}`);
         }
     } catch (error) {
-        console.error('Could not read PHP entry point shim');
-        entryPoint = '';
+        throw new Error(`Failed to read PHP entry point shim: ${error.message}`);
     }
 
     await writeFile(join(cwd, '.gwack/index.php'), entryPoint);

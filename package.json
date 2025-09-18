@@ -1,6 +1,6 @@
 {
   "name": "@gwack/cli",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": false,
   "description": "PHP Framework with vue intergration",
   "type": "module",
@@ -48,7 +48,8 @@
     "bin",
     "src",
     "templates",
-    "dist"
+    "dist",
+    "shims"
   ],
   "engines": {
     "node": ">=18.0.0"

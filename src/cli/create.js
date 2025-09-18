@@ -6,7 +6,8 @@
 
 import { mkdir, writeFile, copyFile } from 'fs/promises';
 import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 
 /**
@@ -81,8 +82,9 @@ export async function createCommand(name, options) {
     // Create basic files
     await createBasicFiles(projectPath);
 
-    console.log(chalk.green('✅ Project created successfully!'));
-    console.log(chalk.gray('\n📦 Next steps:'));
+    console.log(chalk.green('Project created successfully!'));
+    console.log('\n');
+    console.log(chalk.gray('\t Next steps:'));
     console.log(chalk.gray(`   cd ${name}`));
     console.log(chalk.gray('   composer install'));
     console.log(chalk.gray('   npm install'));
@@ -96,49 +98,75 @@ export async function createCommand(name, options) {
 }
 
 async function createBasicFiles(projectPath) {
+  // Resolve root-level shims directory regardless of running from src or dist
+  const here = dirname(fileURLToPath(import.meta.url));
+  // here = .../dist/cli (when built) or .../src/cli (when dev)
+  // package root is two levels up from dist/cli or src/cli
+  const pkgRoot = join(here, '..', '..');
+  const shimsDir = join(pkgRoot, 'shims');
+  const nmShimsDir = join(process.cwd(), 'node_modules', '@gwack', 'cli', 'shims');
   // Create pages/index.vue from shim
   let indexPage;
   try {
-    const shimPath = join(import.meta.dirname, '../shims/index-page.vue');
+    let shimPath = join(shimsDir, 'index-page.vue.tmpl');
     if (existsSync(shimPath)) {
       indexPage = readFileSync(shimPath, 'utf8');
     } else {
-      throw new Error('Shim not found');
+      // fallback to node_modules installation path
+      shimPath = join(nmShimsDir, 'index-page.vue.tmpl');
+      if (existsSync(shimPath)) {
+        indexPage = readFileSync(shimPath, 'utf8');
+      } else {
+        throw new Error('Shim not found');
+      }
     }
   } catch (error) {
     console.error('Could not read index page shim');
   }
-
-  await writeFile(join(projectPath, 'pages/index.vue'), indexPage);
+  if (typeof indexPage === 'string') {
+    await writeFile(join(projectPath, 'pages/index.vue'), indexPage);
+  }
 
   // gwack.config.js
   let config;
   try {
-    const shimPath = join(import.meta.dirname, '../shims/gwack.config.js');
+    let shimPath = join(shimsDir, 'gwack.config.tmpl');
     if (existsSync(shimPath)) {
       config = readFileSync(shimPath, 'utf8');
     } else {
-      throw new Error('Shim not found');
+      shimPath = join(nmShimsDir, 'gwack.config.tmpl');
+      if (existsSync(shimPath)) {
+        config = readFileSync(shimPath, 'utf8');
+      } else {
+        throw new Error('Shim not found');
+      }
     }
   } catch (error) {
     console.error('Could not read config shim');
   }
-
-  await writeFile(join(projectPath, 'gwack.config.js'), config);
+  if (typeof config === 'string') {
+    await writeFile(join(projectPath, 'gwack.config.js'), config);
+  }
 
   // index.html
   let html;
   try {
-    const shimPath = join(import.meta.dirname, '../shims/index.html');
+    let shimPath = join(shimsDir, 'index.html.tmpl');
     if (existsSync(shimPath)) {
       html = readFileSync(shimPath, 'utf8');
     } else {
-      throw new Error('Shim not found');
+      shimPath = join(nmShimsDir, 'index.html.tmpl');
+      if (existsSync(shimPath)) {
+        html = readFileSync(shimPath, 'utf8');
+      } else {
+        throw new Error('Shim not found');
+      }
     }
   } catch (error) {
     console.error('Could not read HTML shim');
     return
   }
-
-  await writeFile(join(projectPath, 'index.html'), html);
+  if (typeof html === 'string') {
+    await writeFile(join(projectPath, 'index.html'), html);
+  }
 }
